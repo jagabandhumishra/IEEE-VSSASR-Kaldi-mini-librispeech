@@ -54,10 +54,10 @@ www.openslr.org/resources/31/dev-clean-2.tar.gz
  
 ## Run 
 
-In the same terminal type (for customized LM)
+In the same terminal type (for customized LM), open run_custom.sh file in text editor and change your kalid root directory location and set stage=0, after that save it and run below command in your current terminal.
 
 ##### ./run_custom.sh
 
-type (for pre-trained LM)
+type (for pre-trained LM), open run_custom.sh file in text editor set stage=0, after that save it and run below command in your current terminal.
 
 ##### ./run_custom_pr_LM.sh
