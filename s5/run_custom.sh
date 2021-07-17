@@ -11,7 +11,7 @@ kaldi_root_dir="/home/jagabandhu/kaldi"
 
 data=./corpus
 
-stage=16
+stage=0
 
 
 

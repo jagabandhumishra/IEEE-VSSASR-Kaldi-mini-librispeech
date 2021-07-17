@@ -12,7 +12,7 @@ data=./corpus
 . ./cmd.sh
 . ./path.sh
 
-stage=15
+stage=0
 . utils/parse_options.sh
 
 set -euo pipefail
