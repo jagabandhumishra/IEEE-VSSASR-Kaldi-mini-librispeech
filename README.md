@@ -2,7 +2,7 @@
 
 Please open terminal (using ctrl+alt+t) type: 
 
-##### cd <Kaldi_root_path>/egs/
+##### cd <Kaldi_root_path>/egs/                                           #example : cd /home/jagabandhu/kaldi/egs/
 
 ##### git clone https://github.com/jagabandhumishra/IEEE-VSSASR-Kaldi-mini-librispeech
 
