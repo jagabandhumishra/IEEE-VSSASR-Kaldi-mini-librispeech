@@ -1,14 +1,20 @@
 # IEEE-VSSASR-Kaldi-mini-librispeech
 
 Please open terminal (using ctrl+alt+t) type: 
-cd <Kaldi_root_path>/egs/
-git clone https://github.com/jagabandhumishra/IEEE-VSSASR-Kaldi-mini-librispeech
+
+##### cd <Kaldi_root_path>/egs/
+
+##### git clone https://github.com/jagabandhumishra/IEEE-VSSASR-Kaldi-mini-librispeech
 
 It will download a folder called IEEE-VSSASR-Kaldi-mini-librispeech to the kaldi/egs folder
 
 In the same terminal type:
-cd IEEE-VSSASR-Kaldi-mini-librispeech/s5
-mkdir corpus   
+
+
+##### cd IEEE-VSSASR-Kaldi-mini-librispeech/s5
+
+
+##### mkdir corpus   
 
 This will create one corpus folder inside IEEE-VSSASR-Kaldi-mini-librispeech/s5 folder
 
