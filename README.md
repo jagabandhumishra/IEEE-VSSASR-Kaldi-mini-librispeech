@@ -51,3 +51,13 @@ www.openslr.org/resources/31/dev-clean-2.tar.gz
  train-clean-5.tar.gz
  
  dev-clean-2.tar.gz
+ 
+## Run 
+
+In the same terminal type (for customized LM)
+
+##### ./run_custom.sh
+
+type (for pre-trained LM)
+
+##### ./run_custom_pr_LM.sh
