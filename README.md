@@ -54,7 +54,7 @@ www.openslr.org/resources/31/dev-clean-2.tar.gz
  
  dev-clean-2.tar.gz
  
-## Run 
+## Run (please open the cmd.sh file and change the memory variable as per your local system specification and save it)
 
 Open run_custom.sh file in text editor and set stage=0, after that save it and run below command in your current terminal.
 
