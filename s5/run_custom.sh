@@ -3,7 +3,8 @@
 # Change this location to somewhere where you want to put the data.
 # written by Jagabandhu Mishra 15/07/2021, IEEE Summer school ASR
 
-kaldi_root_dir="/home/jagabandhu/kaldi"
+export kaldi_root_dir=`pwd`/../../..
+
 
 
 . ./cmd.sh
@@ -11,7 +12,7 @@ kaldi_root_dir="/home/jagabandhu/kaldi"
 
 data=./corpus
 
-stage=0
+stage=-1
 
 
 
@@ -28,7 +29,7 @@ fi
 . utils/parse_options.sh
 
 set -euo pipefail
-
+ncores=`cat /proc/cpuinfo | grep processor | wc -l`    ## provide information about number of cores
 #############################  Dataset download from openslr ##################### 
 if [ $stage -le 0 ]; then
   mkdir -p $data
@@ -110,7 +111,8 @@ fi
 
 
 ###########################  MFCC feature extraction   ###################################
-
+echo '######################### feature extraction started ######################################'
+date
 if [ $stage -le 3 ]; then
   mfccdir=mfcc
   # spread the mfccs over various machines, as this data-set is quite large.
@@ -121,12 +123,13 @@ if [ $stage -le 3 ]; then
   fi
 
   for part in dev_clean_2 train_clean_5; do
-    steps/make_mfcc.sh --cmd "$train_cmd" --nj 8 data/$part exp/make_mfcc/$part $mfccdir
+    steps/make_mfcc.sh --cmd "$train_cmd" --nj "$ncores" data/$part exp/make_mfcc/$part $mfccdir
     steps/compute_cmvn_stats.sh data/$part exp/make_mfcc/$part $mfccdir
   done
 
 fi
-
+echo '######################### feature extraction completed successfully ######################################'
+date
 ######################################################################
 # to check mfcc feature vector
 #copy-feats ark:mfcc/raw_mfcc_dev_clean_2.1.ark ark,t:mfcc/raw_mfcc_dev_clean_2.1.txt
@@ -135,9 +138,10 @@ fi
 
 ############################### Data preparation for language model #################
 # dictionary preparation
-
+echo '######################### dictionary preparation started ######################################'
+date
 if [ $stage -le 4 ]; then
- local/prepare_dict.sh --stage 3 --nj 30 --cmd "$train_cmd" \
+ local/prepare_dict.sh --stage 3 --nj "$ncores" --cmd "$train_cmd" \
     data/local/lm data/local/lm data/local/dict_nosp
 
 fi
@@ -171,46 +175,24 @@ if [ $stage -le 7 ]; then
 ngram=3
 ./lm_build.sh $kaldi_root_dir $ngram
 fi
+
+echo '######################### dictionary preparation completed successfully ######################################'
+date
 #################################
 # To see the language model  (meaning to be asked???)
 # fstprint -isymbols=data/lang_nosp/words.txt -osymbols=data/lang_nosp/words.txt data/lang_nosp/G.fst
-##########################
-#
-
-<< com
-if [ $stage -le 8 ]; then
-
-local/format_lms.sh --src-dir data/lang_nosp data/local/lm
-
-fi
-
-
-#
-
-if [ $stage -le 8 ]; then
-
-  # Create ConstArpaLm format language model for full 3-gram and 4-gram LMs
-utils/build_const_arpa_lm.sh data/local/lm/lm_tglarge.arpa.gz \
-    data/lang_nosp data/lang_nosp_test_tglarge
-
-fi
-com
-
-
-
-
-########################################################################
+##################################################################################################
 # Get the shortest 500 utterances first because those are more likely
 # to have accurate alignments.
 
-if [ $stage -le 9 ]; then
+if [ $stage -le 8 ]; then
   utils/subset_data_dir.sh --shortest data/train_clean_5 500 data/train_500short
 fi
 ############  Train monophone model  ####################
 
-if [ $stage -le 10 ]; then
+if [ $stage -le 9 ]; then
   # TODO(galv): Is this too many jobs for a smaller dataset?
-  steps/train_mono.sh --boost-silence 1.25 --nj 5 --cmd "$train_cmd" \
+  steps/train_mono.sh --boost-silence 1.25 --nj "$ncores" --cmd "$train_cmd" \
     data/train_500short data/lang_nosp exp/mono
 
   
@@ -224,74 +206,86 @@ fi
 ########################################################
 # phone allignment
 
-if [ $stage -le 11 ]; then
-steps/align_si.sh --boost-silence 1.25 --nj 5 --cmd "$train_cmd" \
+if [ $stage -le 10 ]; then
+steps/align_si.sh --boost-silence 1.25 --nj "$ncores" --cmd "$train_cmd" \
     data/train_clean_5 data/lang_nosp exp/mono exp/mono_ali_train_clean_5
 
 fi
 
 ## making graph
-if [ $stage -le 12 ]; then
+if [ $stage -le 11 ]; then
 utils/mkgraph.sh  --mono data/lang_nosp exp/mono exp/mono/graph
 
 fi
 
-
+echo '######################### mono phone decoding  started ######################################'
+date
 ## Decoding
-if [ $stage -le 13 ]; then
-steps/decode.sh --nj "10" --cmd "$decode_cmd" exp/mono/graph data/dev_clean_2 exp/mono/decode
+if [ $stage -le 12 ]; then
+steps/decode.sh --nj "$ncores" --cmd "$decode_cmd" exp/mono/graph data/dev_clean_2 exp/mono/decode
 fi
 ## see the wer|head
 cat exp/mono/decode/wer*|grep WER|sort|head -1
-
+echo '######################### mono phone decoding  done successfully ######################################'
+date
  ##################  tri phone training
  # train delta.sh is generaly used for tri-phone training
 
 
-if [ $stage -le 14 ]; then
+if [ $stage -le 13 ]; then
   steps/train_deltas.sh --boost-silence 1.25 --cmd "$train_cmd" \
     2000 10000 data/train_clean_5 data/lang_nosp exp/mono_ali_train_clean_5 exp/tri1
 
-  steps/align_si.sh --nj 5 --cmd "$train_cmd" \
+  steps/align_si.sh --nj "$ncores" --cmd "$train_cmd" \
     data/train_clean_5 data/lang_nosp exp/tri1 exp/tri1_ali_train_clean_5
 fi
 
+echo '######################### tri phone phone decoding  started ######################################'
+date
 
-if [ $stage -le 15 ]; then
+if [ $stage -le 14 ]; then
 
 utils/mkgraph.sh  data/lang_nosp exp/tri1 exp/tri1/graph
 
-steps/decode.sh --nj "10" --cmd "$decode_cmd" exp/tri1/graph data/dev_clean_2 exp/tri1/decode
+steps/decode.sh --nj "$ncores" --cmd "$decode_cmd" exp/tri1/graph data/dev_clean_2 exp/tri1/decode
 
 fi
 ## see the wer|head
 cat exp/tri1/decode/wer*|grep WER|sort|head -1
 
+echo '######################### tri phone phone decoding  done successfully ######################################'
+date
+
+
 # train an LDA+MLLT system.
-if [ $stage -le 16 ]; then
+if [ $stage -le 15 ]; then
   steps/train_lda_mllt.sh --cmd "$train_cmd" \
     --splice-opts "--left-context=3 --right-context=3" 2500 15000 \
     data/train_clean_5 data/lang_nosp exp/tri1_ali_train_clean_5 exp/tri2b
 
   # Align utts using the tri2b model
-  steps/align_si.sh  --nj 5 --cmd "$train_cmd" --use-graphs true \
+  steps/align_si.sh  --nj "$ncores" --cmd "$train_cmd" --use-graphs true \
     data/train_clean_5 data/lang_nosp exp/tri2b exp/tri2b_ali_train_clean_5
 fi
 
 # Train tri3b, which is LDA+MLLT+SAT
-if [ $stage -le 17 ]; then
+if [ $stage -le 16 ]; then
   steps/train_sat.sh --cmd "$train_cmd" 2500 15000 \
     data/train_clean_5 data/lang_nosp exp/tri2b_ali_train_clean_5 exp/tri3b
 fi
 
-if [ $stage -le 18 ]; then
+echo '######################### tri phone phone with MLLT+SAD decoding started  ######################################'
+date
+
+if [ $stage -le 17 ]; then
 
 utils/mkgraph.sh  data/lang_nosp exp/tri3b exp/tri3b/graph
 
-steps/decode_fmllr.sh --nj "10" --cmd "$decode_cmd" exp/tri3b/graph data/dev_clean_2 exp/tri3b/decode
+steps/decode_fmllr.sh --nj "$ncores" --cmd "$decode_cmd" exp/tri3b/graph data/dev_clean_2 exp/tri3b/decode
 
 fi
 ## see the wer|head
 cat exp/tri3b/decode/wer*|grep WER|sort|head -1
 
-
+echo '######################### tri phone phone with MLLT+SAD decoding done successfully  ######################################'
+date
