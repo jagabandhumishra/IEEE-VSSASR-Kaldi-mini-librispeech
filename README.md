@@ -56,7 +56,7 @@ www.openslr.org/resources/31/dev-clean-2.tar.gz
  
 ## Run 
 
-Open run_custom.sh file in text editor and change your kalid root directory location and set stage=0, after that save it and run below command in your current terminal.
+Open run_custom.sh file in text editor and set stage=0, after that save it and run below command in your current terminal.
 
 ##### ./run_custom.sh
 
