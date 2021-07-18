@@ -13,3 +13,4 @@ gunzip -c data/local/lang_tmp_nosp/lm_phone_bg.ilm.gz | utils/find_arpa_oovs.pl 
 rm -rf data/lang_nosp/G.fst
 gunzip -c data/local/lang_tmp_nosp/lm_phone_bg.ilm.gz | grep -v '<s> <s>' | grep -v '<s> </s>' | grep -v '</s> </s>' | grep -v 'SIL' | $kaldi_root_dir/src/lmbin/arpa2fst - | fstprint | utils/remove_oovs.pl data/local/lang_tmp_nosp/oov.txt | utils/eps2disambig.pl | utils/s2eps.pl | fstcompile --isymbols=data/lang_nosp/words.txt --osymbols=data/lang_nosp/words.txt --keep_isymbols=false --keep_osymbols=false | fstrmepsilon > data/lang_nosp/G.fst
 $kaldi_root_dir/src/fstbin/fstisstochastic data/lang_nosp/G.fst
+exit 0

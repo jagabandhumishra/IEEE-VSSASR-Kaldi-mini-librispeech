@@ -165,15 +165,10 @@ fi
 
 #
 
-if [ $stage -le 7 ]; then
 
-  # Create ConstArpaLm format language model for full 3-gram and 4-gram LMs
-utils/build_const_arpa_lm.sh data/local/lm/lm_tglarge.arpa.gz \
-    data/lang_nosp data/lang_nosp_test_tglarge
-
-fi
 echo '######################### dictionary preparation completed successfully ######################################'
 date
+
 #################################
 # To see the language model  (meaning to be asked???)
 # fstprint -isymbols=data/lang_nosp/words.txt -osymbols=data/lang_nosp/words.txt data/lang_nosp/G.fst
@@ -181,12 +176,12 @@ date
 # Get the shortest 500 utterances first because those are more likely
 # to have accurate alignments.
 
-if [ $stage -le 8 ]; then
+if [ $stage -le 7 ]; then
   utils/subset_data_dir.sh --shortest data/train_clean_5 500 data/train_500short
 fi
 ############  Train monophone model  ####################
 
-if [ $stage -le 9 ]; then
+if [ $stage -le 8 ]; then
   # TODO(galv): Is this too many jobs for a smaller dataset?
   steps/train_mono.sh --boost-silence 1.25 --nj "$ncores" --cmd "$train_cmd" \
     data/train_500short data/lang_nosp exp/mono
@@ -202,14 +197,14 @@ fi
 ########################################################
 # phone allignment
 
-if [ $stage -le 10 ]; then
+if [ $stage -le 9 ]; then
 steps/align_si.sh --boost-silence 1.25 --nj "$ncores" --cmd "$train_cmd" \
     data/train_clean_5 data/lang_nosp exp/mono exp/mono_ali_train_clean_5
 
 fi
 
 ## making graph
-if [ $stage -le 11 ]; then
+if [ $stage -le 10 ]; then
 utils/mkgraph.sh  --mono data/lang_nosp_test_tgsmall exp/mono exp/mono/graph
 
 fi
@@ -217,7 +212,7 @@ fi
 echo '######################### mono phone decoding  started ######################################'
 date
 ## Decoding
-if [ $stage -le 12 ]; then
+if [ $stage -le 11 ]; then
 steps/decode.sh --nj "$ncores" --cmd "$decode_cmd" exp/mono/graph data/dev_clean_2 exp/mono/decode
 fi
 ## see the wer|head
@@ -228,7 +223,7 @@ date
  # train delta.sh is generaly used for tri-phone training
 
 
-if [ $stage -le 14 ]; then
+if [ $stage -le 12 ]; then
   steps/train_deltas.sh --boost-silence 1.25 --cmd "$train_cmd" \
     2000 10000 data/train_clean_5 data/lang_nosp exp/mono_ali_train_clean_5 exp/tri1
 
@@ -239,7 +234,7 @@ fi
 echo '######################### tri phone phone decoding  started ######################################'
 date
 
-if [ $stage -le 15 ]; then
+if [ $stage -le 13 ]; then
 
 utils/mkgraph.sh  data/lang_nosp_test_tgsmall exp/tri1 exp/tri1/graph
 
@@ -254,7 +249,7 @@ date
 
 
 # train an LDA+MLLT system.
-if [ $stage -le 16 ]; then
+if [ $stage -le 14 ]; then
   steps/train_lda_mllt.sh --cmd "$train_cmd" \
     --splice-opts "--left-context=3 --right-context=3" 2500 15000 \
     data/train_clean_5 data/lang_nosp exp/tri1_ali_train_clean_5 exp/tri2b
@@ -272,7 +267,7 @@ fi
 echo '######################### tri phone phone with MLLT+SAD decoding started  ######################################'
 date
 
-if [ $stage -le 18 ]; then
+if [ $stage -le 15 ]; then
 
 utils/mkgraph.sh  data/lang_nosp_test_tgsmall exp/tri3b exp/tri3b/graph
 
