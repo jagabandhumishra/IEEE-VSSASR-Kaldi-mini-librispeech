@@ -189,6 +189,7 @@ if [ $stage -le 8 ]; then
   
 fi
 #########################################
+#http://kaldi-asr.org/doc/glossary.html
 #to check the model statistics
 # gmm-info exp/mono/final.mdl
 ## To see the phone transition   (meaning of this ???)
