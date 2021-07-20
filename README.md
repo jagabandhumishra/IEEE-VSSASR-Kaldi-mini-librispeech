@@ -36,10 +36,6 @@ www.openslr.org/resources/31/dev-clean-2.tar.gz
 ## Directory Structure
 
 ### corpus
-
- 3-gram.arpa.gz
- 
- 3-gram.pruned.1e-7.arpa.gz
  
  3-gram.pruned.3e-7.arpa.gz
  
