@@ -20,11 +20,8 @@ In the same terminal type:
 
 This will create one corpus folder inside IEEE-VSSASR-Kaldi-mini-librispeech/s5 folder
 
-Copy the downloaded content (all 7 files mentioned below) to the corpus folder
+Copy the downloaded content (all 5 files mentioned below) to the corpus folder
 
-www.openslr.org/resources/11/3-gram.arpa.gz
-
-www.openslr.org/resources/11/3-gram.pruned.1e-7.arpa.gz
 
 www.openslr.org/resources/11/3-gram.pruned.3e-7.arpa.gz
 
