@@ -14,7 +14,7 @@ set -e -o pipefail
 # First the options that are passed through to run_ivector_common.sh
 # (some of which are also used in this script directly).
 stage=0  #0
-nj=50
+nj=5
 tag=   #experiment tag, so that models are not overwritten; make sure change this if running a new experiment.
 expdir=exp 
 datadir=data #Give the absolute path in case your data directory is not present in the current working directory
@@ -23,10 +23,10 @@ test_sets=dev_clean_2        #"test_dev93 test_eval92"
 #The best TRI3 MODEL
 gmm=tri3b  #tri4b # this is the source gmm-dir that we'll use for alignments; it
                             # should have alignments for the specified training data.
-
+CUDA_VISIBLE_DEVICES=0
 num_threads_ubm=30
 
-nj_extractor=50
+nj_extractor=5
 # It runs a JOB with '-pe smp N', where N=$[threads*processes]
 num_threads_extractor=4
 num_processes_extractor=4
@@ -73,6 +73,7 @@ where "nvcc" is installed.
 EOF
 fi
 date
+
 ./run_ivector_common.sh \
   --stage $stage --nj $nj \
   --train-set $train_set --gmm $gmm --rest-sets $test_sets --data-folder $datadir --exp-folder $expdir \
@@ -91,7 +92,7 @@ dir=$expdir/chain${nnet3_affix}/tdnn${affix}_sp
 train_data_dir=$datadir/${train_set}_sp_hires
 train_ivector_dir=$expdir/nnet3/ivectors_${train_set}_sp_hires
 lores_train_data_dir=$datadir/${train_set}_sp
-original_lang=lang_nosp
+original_lang=lang_nosp_test_tgsmall
 echo "$train_ivector_dir"
 # note: you don't necessarily have to change the treedir name
 # each time you do a new experiment-- only if you change the
@@ -224,12 +225,12 @@ if [ $stage -le 16 ]; then
 	  --trainer.add-option="--optimization.memory-compression-level=2" \
 	  --trainer.srand=$srand \
 	  --trainer.max-param-change=2.0 \
-	  --trainer.num-epochs=10 \
-	  --trainer.frames-per-iter=5000000 \
-	  --trainer.optimization.num-jobs-initial=1 \
-	  --trainer.optimization.num-jobs-final=1 \
-	  --trainer.optimization.initial-effective-lrate=0.0005 \
-	  --trainer.optimization.final-effective-lrate=0.00005 \
+	  --trainer.num-epochs=5 \
+	  --trainer.frames-per-iter=100000 \
+	  --trainer.optimization.num-jobs-initial=2 \
+	  --trainer.optimization.num-jobs-final=4 \
+	  --trainer.optimization.initial-effective-lrate=0.005 \
+	  --trainer.optimization.final-effective-lrate=0.0005 \
 	  --trainer.num-chunk-per-minibatch=128,64 \
 	  --trainer.optimization.momentum=0.0 \
 	  --egs.chunk-width=$chunk_width \
@@ -238,7 +239,7 @@ if [ $stage -le 16 ]; then
 	  --egs.dir="$common_egs_dir" \
 	  --egs.opts="--frames-overlap-per-eg 0" \
 	  --cleanup.remove-egs=$remove_egs \
-	  --use-gpu=true \
+	  --use-gpu=wait \
 	  --reporting.email="$reporting_email" \
 	  --feat-dir=$train_data_dir \
 	  --tree-dir=$tree_dir \
@@ -256,7 +257,9 @@ if [ $stage -le 17 ]; then
 
 	utils/lang/check_phones_compatible.sh \
     	  $datadir/$original_lang/phones.txt $lang/phones.txt
-  	utils/mkgraph.sh \
+  
+
+	utils/mkgraph.sh \
     	  --self-loop-scale 1.0 $datadir/$original_lang \
     	  $tree_dir $tree_dir/graph || exit 1;
 

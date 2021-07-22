@@ -3,7 +3,7 @@
 # Change this location to somewhere where you want to put the data.
 # written by Jagabandhu Mishra 15/07/2021, IEEE Summer school ASR
 
-
+# change
 
 data=./corpus
 
@@ -12,7 +12,7 @@ data=./corpus
 . ./cmd.sh
 . ./path.sh
 
-stage=-1
+stage=10
 . utils/parse_options.sh
 
 set -euo pipefail
@@ -205,11 +205,11 @@ steps/align_si.sh --boost-silence 1.25 --nj "$ncores" --cmd "$train_cmd" \
 fi
 
 ## making graph
-if [ $stage -le 10 ]; then
-utils/mkgraph.sh  --mono data/lang_nosp_test_tgsmall exp/mono exp/mono/graph
+#if [ $stage -le 10 ]; then
+#utils/mkgraph.sh  --mono data/lang_nosp_test_tgsmall exp/mono exp/mono/graph
 
-fi
-
+#fi
+<<com
 echo '######################### mono phone decoding  started ######################################'
 date
 ## Decoding
@@ -222,7 +222,7 @@ echo '######################### mono phone decoding  done successfully #########
 date
  ##################  tri phone training
  # train delta.sh is generaly used for tri-phone training
-
+com
 
 if [ $stage -le 12 ]; then
   steps/train_deltas.sh --boost-silence 1.25 --cmd "$train_cmd" \
@@ -231,7 +231,7 @@ if [ $stage -le 12 ]; then
   steps/align_si.sh --nj "$ncores" --cmd "$train_cmd" \
     data/train_clean_5 data/lang_nosp exp/tri1 exp/tri1_ali_train_clean_5
 fi
-
+<<com
 echo '######################### tri phone phone decoding  started ######################################'
 date
 
@@ -247,7 +247,7 @@ cat exp/tri1/decode/wer*|grep WER|sort|head -1
 
 echo '######################### tri phone phone decoding  done successfully ######################################'
 date
-
+com
 
 # train an LDA+MLLT system.
 if [ $stage -le 14 ]; then
@@ -267,7 +267,7 @@ if [ $stage -le 17 ]; then
 fi
 echo '######################### tri phone phone with MLLT+SAD decoding started  ######################################'
 date
-
+<<com
 if [ $stage -le 15 ]; then
 
 utils/mkgraph.sh  data/lang_nosp_test_tgsmall exp/tri3b exp/tri3b/graph
@@ -280,3 +280,8 @@ cat exp/tri3b/decode/wer*|grep WER|sort|head -1
 
 echo '######################### tri phone phone with MLLT+SAD decoding done successfully  ######################################'
 date
+com
+
+steps/align_fmllr.sh --nj 5 --cmd "$train_cmd" \
+    data/train_clean_5 data/lang_nosp exp/tri3b exp/tri3b_ali_train_clean_5
+
